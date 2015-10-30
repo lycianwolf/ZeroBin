@@ -4,7 +4,7 @@ if ( version_compare ( PHP_VERSION, '5.2.6' ) < 0 ) die( 'ZeroBin requires PHP 5
 
 $aConfig = array();
 
-$aConfig[ 'version' ]     = "Alpha 0.19.9";
+$aConfig[ 'version' ]     = "Alpha 0.19.10";
 
 $aConfig[ 'timelimit' ]   = 2;              // One request allowed every X seconds
 $aConfig[ 'salt_append' ] = "_salt.php";    
@@ -200,13 +200,16 @@ if ( !empty( $_POST[ 'data' ] ) ) // Create new paste/comment
 // Create storage directory if it does not exist.
     if ( !is_dir ( $aConfig[ 'data_dir' ] ) )
     {
-        if( !mkdir ( $aConfig[ 'data_dir' ], 0705 ) )
+        mkdir ( $aConfig[ 'data_dir' ], 0600 );
+        
+        if ( !is_dir ( $aConfig[ 'data_dir' ] ) )
         {
-            echo json_encode( array( 'status' => 0, 'message' => 'Administrator has not set the write permissions to the paste directory.') );
+            echo json_encode( array( 'status' => 0, 'message' => 'Administrator has not set the write permissions to the pastebin directory.') );
             exit;
         }
 
         file_put_contents ( $aConfig[ 'data_dir' ].'/.htaccess', "Allow from none\nDeny from all\n", LOCK_EX );
+        touch( $aConfig[ 'data_dir' ].'/index.html' );
     }
 
 // Make sure last paste from the IP address was more than 10 seconds ago.
@@ -417,7 +420,7 @@ Returns an array ('',$ERRORMESSAGE,$STATUS)
 */
 function processPasteDelete ( $pasteid, $deletetoken )
 {
-    if ( preg_match ( '/\A[a-z0-9]+{}\z/', $pasteid ) )  // Is this a valid paste identifier ?
+    if ( preg_match ( '/\A[a-z0-9]+\z/', $pasteid ) )  // Is this a valid paste identifier ?
     {
         $filename = dataid2path ( $pasteid ).$pasteid;
         if ( !is_file ( $filename ) ) // Check that paste exists.
